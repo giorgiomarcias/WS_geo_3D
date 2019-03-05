@@ -1,5 +1,3 @@
-#include <string>
-
 #include <igl/opengl/glfw/Viewer.h>
 #include <igl/unproject_onto_mesh.h>
 
@@ -8,7 +6,9 @@ using namespace Eigen;
 class Viewer
 {
   public:
-    Viewer() : _viewer()
+    Viewer(
+        std::function<MatrixXd(MatrixXd const&, MatrixXi const&)> const& faceNormalFun
+    ) : _viewer(), _faceNormalFun(faceNormalFun)
     {
         auto callback_mouse_down = [this](igl::opengl::glfw::Viewer &viewer, int button, int modifier) -> bool {
             if (button == GLFW_MOUSE_BUTTON_1 && modifier == 0)
@@ -68,16 +68,7 @@ class Viewer
             {
             case '1':
                 // flat shading - face normals
-                N.resize(F.rows(), F.cols());
-                for (int i = 0; i < F.rows(); ++i)
-                {
-                    auto p0 = V.row(F(i, 0));
-                    auto p1 = V.row(F(i, 1));
-                    auto p2 = V.row(F(i, 2));
-                    Vector3d e0 = p1 - p0;
-                    Vector3d e1 = p2 - p0;
-                    N.row(i) = e0.cross(e1).normalized();
-                }
+                N = _faceNormalFun(V, F);
                 break;
             case '2':
                 // smooth normals - vertex normals
@@ -100,6 +91,7 @@ class Viewer
     void set_mesh(MatrixXd const &V, MatrixXi const &F)
     {
         _viewer.data().set_mesh(V, F);
+        _viewer.data().set_normals(_faceNormalFun(V, F));
     }
 
     void launch()
@@ -109,5 +101,6 @@ class Viewer
 
   private:
     igl::opengl::glfw::Viewer _viewer;
+    std::function<MatrixXd(MatrixXd const&, MatrixXi const&)> _faceNormalFun;
     std::chrono::steady_clock::time_point _lastTimePoint;
 };

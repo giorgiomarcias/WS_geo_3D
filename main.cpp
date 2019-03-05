@@ -4,6 +4,8 @@
 #include <igl/unproject_onto_mesh.h>
 
 #include "viewer.hpp"
+#include "load.hpp"
+#include "normals.hpp"
 
 using namespace Eigen;
 
@@ -15,9 +17,10 @@ int main(int argc, char *argv[]) {
     int fid;
     Vector3d red(1, 0, 0);
 
-    Viewer viewer;
+    Viewer viewer(&perFaceNormals);
 
-    igl::readOBJ("../meshes/teapot.obj", V, F);
+    loadAsIndexedTriangleMesh("../meshes/teapot.obj", V, F);
+    // loadAsTriangleSoup("../meshes/teapot.obj", V, F);
 
     viewer.set_mesh(V, F);
     viewer.launch();
