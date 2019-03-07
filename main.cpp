@@ -12,15 +12,11 @@ using namespace Eigen;
 int main(int argc, char *argv[]) {
     MatrixXd V;
     MatrixXi F;
-    Vector3f bc;
-    Vector3d hitPoint;
-    int fid;
-    Vector3d red(1, 0, 0);
 
-    Viewer viewer(&perFaceNormals);
+    Viewer viewer(&perFaceNormals, &perVertexNormals, &perCornerNormals);
 
-    loadAsIndexedTriangleMesh("../meshes/teapot.obj", V, F);
-    // loadAsTriangleSoup("../meshes/teapot.obj", V, F);
+    loadAsTriangleSoup("../meshes/vase.obj", V, F);
+    // loadAsIndexedTriangleMesh("../meshes/vase.obj", V, F);
 
     viewer.set_mesh(V, F);
     viewer.launch();

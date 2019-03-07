@@ -1,3 +1,5 @@
+#pragma once
+
 #include <igl/opengl/glfw/Viewer.h>
 #include <igl/unproject_onto_mesh.h>
 
@@ -7,8 +9,10 @@ class Viewer
 {
   public:
     Viewer(
-        std::function<MatrixXd(MatrixXd const&, MatrixXi const&)> const& faceNormalFun
-    ) : _viewer(), _faceNormalFun(faceNormalFun)
+        std::function<MatrixXd(MatrixXd const&, MatrixXi const&)> const& faceNormalFun,
+        std::function<MatrixXd(MatrixXd const&, MatrixXi const&)> const& vertexNormalFun,
+        std::function<MatrixXd(MatrixXd const&, MatrixXi const&)> const& cornerNormalFun
+    ) : _viewer(), _faceNormalFun(faceNormalFun), _vertexNormalFun(vertexNormalFun), _cornerNormalFun(cornerNormalFun)
     {
         auto callback_mouse_down = [this](igl::opengl::glfw::Viewer &viewer, int button, int modifier) -> bool {
             if (button == GLFW_MOUSE_BUTTON_1 && modifier == 0)
@@ -72,9 +76,11 @@ class Viewer
                 break;
             case '2':
                 // smooth normals - vertex normals
+                N = _vertexNormalFun(V, F);
                 break;
             case '3':
                 // sharp/smooth shading - corner normals
+                N = _cornerNormalFun(V, F);
                 break;
             default:
                 return false;
@@ -102,5 +108,7 @@ class Viewer
   private:
     igl::opengl::glfw::Viewer _viewer;
     std::function<MatrixXd(MatrixXd const&, MatrixXi const&)> _faceNormalFun;
+    std::function<MatrixXd(MatrixXd const&, MatrixXi const&)> _vertexNormalFun;
+    std::function<MatrixXd(MatrixXd const&, MatrixXi const&)> _cornerNormalFun;
     std::chrono::steady_clock::time_point _lastTimePoint;
 };
