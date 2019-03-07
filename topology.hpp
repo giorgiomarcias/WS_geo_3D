@@ -39,6 +39,14 @@ void vertex_face_adjacency(
     VFi.clear();
     VF.resize(V.rows());
     VFi.resize(V.rows());
+
+    for (int f = 0; f < F.rows(); ++f) {
+        for (int p = 0; p < F.cols(); ++p) {
+            int v = F(f, p);
+            VF[v].push_back(f);
+            VFi[v].push_back(p);
+        }
+    }
 }
 
 /**
@@ -89,4 +97,31 @@ void face_face_adjacency(
     FFi.resize(F.rows(), F.cols());
     FF.setConstant(-1);
     FFi.setConstant(-1);
+
+    for (int f = 0; f < F.rows(); ++f) {
+        for (int p = 0; p < F.cols(); ++p) {
+            int v = F(f, p);
+            std::vector<int> const& VF_adj = VF[v];
+            std::vector<int> const& VFi_adj = VFi[v];
+
+            int v_next = F(f, (p + 1) % F.cols());
+
+            for (std::size_t i = 0; i < VF_adj.size(); ++i) {
+                int f_adj = VF_adj[i];
+
+                if (f_adj == f) {
+                    continue;
+                }
+
+                int fi_adj = VFi_adj[i];
+                int fi_prev = (F.cols() + fi_adj - 1) % F.cols();
+
+                if (F(f_adj, fi_prev) == v_next) {
+                    // trovato!
+                    FF(f, p) = f_adj;
+                    FFi(f, p) = fi_prev;
+                }
+            }
+        }
+    }
 }

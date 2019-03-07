@@ -15,8 +15,8 @@ int main(int argc, char *argv[]) {
 
     Viewer viewer(&perFaceNormals, &perVertexNormals, &perCornerNormals);
 
-    loadAsTriangleSoup("../meshes/vase.obj", V, F);
-    // loadAsIndexedTriangleMesh("../meshes/vase.obj", V, F);
+    // loadAsTriangleSoup("../meshes/vase.obj", V, F);
+    loadAsIndexedTriangleMesh("../meshes/vase.obj", V, F);
 
     viewer.set_mesh(V, F);
     viewer.launch();
