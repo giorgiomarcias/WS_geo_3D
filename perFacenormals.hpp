@@ -50,5 +50,15 @@ MatrixXd perFaceNormals(MatrixXd const &V, MatrixXi const &F)
     // normalizzare un vettore, in-place: c.normalize();
     // normalizzare un vettore, in una nuova variabile: Vector3d cn = c.normalized();
 
+    for (int f = 0; f < F.rows(); ++f)
+    {
+        Vector3d A = V.row(F(f, 0));
+        Vector3d B = V.row(F(f, 1));
+        Vector3d C = V.row(F(f, 2));
+        Vector3d e0 = B - A;
+        Vector3d e1 = C - A;
+        N.row(f) = e0.cross(e1).normalized();
+    }
+
     return N;
 }
