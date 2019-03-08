@@ -3,6 +3,8 @@
 #include <Eigen/Core>
 #include <Eigen/Dense>
 
+#include "topology.hpp"
+
 using namespace Eigen;
 
 /**
@@ -57,6 +59,95 @@ MatrixXd perCornerNormals(MatrixXd const &V, MatrixXi const &F)
     // se non vuoi scrivere il codice che fa questo, puoi includere il file
     // #include "topology.hpp"
     // e chiamare le funzioni `vertex_face_adjacency()` e `face_face_adjacency()`
+
+    std::vector<std::vector<int>> VF, VFi;
+    MatrixXi FF, FFi;
+
+    vertex_face_adjacency(V, F, VF, VFi);
+    face_face_adjacency(V, F, VF, VFi, FF, FFi);
+
+    MatrixXd FN(F.rows(), 3);
+    VectorXd Fareas(F.rows());
+    MatrixXd Fangles(F.rows(), 3);
+
+    for (int f = 0; f < F.rows(); ++f)
+    {
+        int i = F(f, 0);
+        int j = F(f, 1);
+        int k = F(f, 2);
+
+        Vector3d A = V.row(i);
+        Vector3d B = V.row(j);
+        Vector3d C = V.row(k);
+
+        Vector3d e0 = B - A;
+        Vector3d e1 = C - B;
+        Vector3d e2 = A - C;
+
+        Vector3d c0 = e0.cross(-e2);
+        Vector3d c1 = e1.cross(-e0);
+        Vector3d c2 = e2.cross(-e1);
+
+        Fareas(f) = c0.norm() / 2.0;
+
+        FN.row(f) = c0.normalized();
+
+        Fangles(f, 0) = std::atan2(c0.norm(), e0.dot(-e2));
+        Fangles(f, 1) = std::atan2(c1.norm(), e1.dot(-e0));
+        Fangles(f, 2) = std::atan2(c2.norm(), e2.dot(-e1));
+    }
+
+    MatrixXd FF_cosines(F.rows(), 3);
+    for (int f = 0; f < F.rows(); ++f) {
+        auto const& fn = FN.row(f);
+        for (int p = 0; p < 3; ++p) {
+            auto const& ffn = FN.row(FF(f, p));
+            FF_cosines(f, p) = fn.dot(ffn);
+        }
+    }
+
+    for (int f = 0; f < F.rows(); ++f) {
+        auto const& fn = FN.row(f);
+        for (int p = 0; p < 3; ++p) {
+            auto n = Fareas(f) * Fangles(f, p) * fn;
+
+            N.row(3 * f + p) += n;
+
+            // contribusci alle normali di tutte le facce adiacenti intorno
+            // al corner p, il cui angolo diedrale non supera la soglia
+            int nf = FF(f, (3 + p - 1) % 3);
+            if (nf >= 0) {
+                int nfi = FFi(f, (3 + p - 1) % 3);
+                // prima le facce in senso antiorario
+                do {
+                    if (FF_cosines(nf, nfi) >= cos_thr) {
+                        N.row(3 * nf + nfi) += n;
+                        int nnf = FF(nf, (3 + nfi - 1) % 3);
+                        nfi = FFi(nf, (3 + nfi - 1) % 3);
+                        nf = nnf;
+                    } else {
+                        break;
+                    }
+                } while (nf >= 0 && nf != f);
+
+                // poi le facce in senso orario, eventualmente
+                if (nf != f) {
+                    nf = f;
+                    nfi = p;
+                    while (nf >= 0 && FF_cosines(nf, nfi) >= cos_thr) {
+                        int nnf = FF(nf, nfi);
+                        nfi = (FFi(nf, nfi) + 1) % 3;
+                        nf = nnf;
+                        N.row(3 * nf + nfi) += n;
+                    }
+                }
+            }
+        }
+    }
+
+    for (int n = 0; n < N.rows(); ++n) {
+        N.row(n).normalize();
+    }
 
     return N;
 }
