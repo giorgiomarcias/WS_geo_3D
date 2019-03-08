@@ -5,7 +5,9 @@
 
 #include "viewer.hpp"
 #include "load.hpp"
-#include "normals.hpp"
+#include "perFacenormals.hpp"
+#include "perVertexNormals.hpp"
+#include "perCornerNormals.hpp"
 
 using namespace Eigen;
 
