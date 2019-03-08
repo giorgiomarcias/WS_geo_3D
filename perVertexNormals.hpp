@@ -53,5 +53,40 @@ MatrixXd perVertexNormals(MatrixXd const &V, MatrixXi const &F)
     // angolo tra due vettori normalizzati: std::acos(n1.dot(n2));
     // angolo tra due vettori non-normalizzati: std::atan2(v1.cross(v2).norm(), v1.dot(v2));
 
+    for (int f = 0; f < F.rows(); ++f)
+    {
+        int i = F(f, 0);
+        int j = F(f, 1);
+        int k = F(f, 2);
+
+        Vector3d A = V.row(i);
+        Vector3d B = V.row(j);
+        Vector3d C = V.row(k);
+
+        Vector3d e0 = B - A;
+        Vector3d e1 = C - B;
+        Vector3d e2 = A - C;
+
+        Vector3d c0 = e0.cross(-e2);
+        Vector3d c1 = e1.cross(-e0);
+        Vector3d c2 = e2.cross(-e1);
+
+        double area = c0.norm() / 2.0;
+
+        Vector3d n = c0.normalized();
+
+        double a_i = std::atan2(c0.norm(), e0.dot(-e2));
+        double a_j = std::atan2(c1.norm(), e1.dot(-e0));
+        double a_k = std::atan2(c2.norm(), e2.dot(-e1));
+
+        N.row(i) += area * a_i * n;
+        N.row(j) += area * a_j * n;
+        N.row(k) += area * a_k * n;
+    }
+
+    for (int v = 0; v < V.rows(); ++v) {
+        N.row(v).normalize();
+    }
+
     return N;
 }
