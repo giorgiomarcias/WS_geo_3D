@@ -51,7 +51,7 @@ MatrixXd perVertexNormals(MatrixXd const &V, MatrixXi const &F)
     // normalizzare un vettore, in una nuova variabile: Vector3d cn = c.normalized();
     // lunghezza (norma) di un vettore: v.norm();
     // angolo tra due vettori normalizzati: std::acos(n1.dot(n2));
-    // angolo tra due vettori non-normalizzati: std::atan2(v1.cross(c2).norm(), v1.dot(v2));
+    // angolo tra due vettori non-normalizzati: std::atan2(v1.cross(v2).norm(), v1.dot(v2));
 
     return N;
 }
